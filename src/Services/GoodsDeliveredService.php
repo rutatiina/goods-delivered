@@ -27,8 +27,9 @@ class GoodsDeliveredService
             'tenant_id' => session('tenant_id'),
             'document_name' => 'Goods Delivered Note',
             'document_type' => 'inventory',
-            'debit_financial_account_code' => 720100, //Cost of Sales
-            'credit_financial_account_code' => 130500, //Other Inventory [value was 6 before changing to codes]
+            //since this is not a financial accounting entry, there is no need for the double entry details
+            //'debit_financial_account_code' => 720100, //Cost of Sales
+            //'credit_financial_account_code' => 130500, //Other Inventory [value was 6 before changing to codes]
         ]);
     }
 
@@ -109,21 +110,13 @@ class GoodsDeliveredService
             $Txn->document_name = $data['document_name'];
             $Txn->number = $data['number'];
             $Txn->date = $data['date'];
-            $Txn->debit_financial_account_code = $data['debit_financial_account_code'];
             $Txn->contact_id = $data['contact_id'];
             $Txn->contact_name = $data['contact_name'];
             $Txn->contact_address = $data['contact_address'];
             $Txn->reference = $data['reference'];
-            $Txn->base_currency = $data['base_currency'];
-            $Txn->quote_currency = $data['quote_currency'];
-            $Txn->exchange_rate = $data['exchange_rate'];
-            $Txn->taxable_amount = $data['taxable_amount'];
             $Txn->total = $data['total'];
             $Txn->branch_id = $data['branch_id'];
             $Txn->store_id = $data['store_id'];
-            $Txn->due_date = $data['due_date'];
-            $Txn->contact_notes = $data['contact_notes'];
-            $Txn->terms_and_conditions = $data['terms_and_conditions'];
             $Txn->status = $data['status'];
 
             $Txn->save();
@@ -134,9 +127,6 @@ class GoodsDeliveredService
 
             //Save the items >> $data['items']
             GoodsDeliveredItemService::store($data);
-
-            //Save the ledgers >> $data['ledgers']; and update the balances
-            GoodsDeliveredLedgerService::store($data);
 
             //check status and update financial account and contact balances accordingly
             $approval = GoodsDeliveredApprovalService::run($data);
@@ -158,20 +148,20 @@ class GoodsDeliveredService
         {
             DB::connection('tenant')->rollBack();
 
-            Log::critical('Fatal Internal Error: Failed to save GoodsDelivered to database');
+            Log::critical('Fatal Internal Error: Failed to save Goods Delivered to database');
             Log::critical($e);
 
             //print_r($e); exit;
             if (App::environment('local'))
             {
-                self::$errors[] = 'Error: Failed to save GoodsDelivered to database.';
+                self::$errors[] = 'Error: Failed to save Goods Delivered to database.';
                 self::$errors[] = 'File: ' . $e->getFile();
                 self::$errors[] = 'Line: ' . $e->getLine();
                 self::$errors[] = 'Message: ' . $e->getMessage();
             }
             else
             {
-                self::$errors[] = 'Fatal Internal Error: Failed to save GoodsDelivered to database. Please contact Admin';
+                self::$errors[] = 'Fatal Internal Error: Failed to save Goods Delivered to database. Please contact Admin';
             }
 
             return false;
@@ -245,9 +235,6 @@ class GoodsDeliveredService
 
             //Save the items >> $data['items']
             GoodsDeliveredItemService::store($data);
-
-            //Save the ledgers >> $data['ledgers']; and update the balances
-            GoodsDeliveredLedgersService::store($data);
 
             //check status and update financial account and contact balances accordingly
             $approval = GoodsDeliveredApprovalService::run($data);

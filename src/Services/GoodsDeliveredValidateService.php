@@ -59,14 +59,8 @@ class GoodsDeliveredValidateService
 
         // << data validation <<------------------------------------------------------------
 
-        $settings = GoodsDeliveredSetting::has('financial_account_to_debit')
-            ->has('financial_account_to_credit')
-            ->with(['financial_account_to_debit', 'financial_account_to_credit'])
-            ->firstOrFail();
+        $settings = GoodsDeliveredSetting::firstOrFail();
         //Log::info($this->settings);
-
-        $financialAccountToCredit = $settings->financial_account_to_credit->code;
-
 
         $contact = Contact::findOrFail($requestInstance->contact_id);
 
@@ -82,7 +76,6 @@ class GoodsDeliveredValidateService
         $data['number_length'] = $settings->minimum_number_length;
         $data['number_postfix'] = $settings->number_postfix;
         $data['date'] = $requestInstance->input('date');
-        $data['debit_financial_account_code'] = $settings->financial_account_to_debit->code;
         $data['contact_id'] = $requestInstance->contact_id;
         $data['contact_name'] = $contact->name;
         $data['contact_address'] = trim($contact->shipping_address_street1 . ' ' . $contact->shipping_address_street2);
@@ -124,21 +117,11 @@ class GoodsDeliveredValidateService
             //get the item
             $itemModel = Item::find($item['item_id']);
 
-            if (optional($itemModel)->selling_financial_account_code)
-            {
-                $financialAccountToCredit = $itemModel->selling_financial_account_code;
-            }
-
-
-            //use item selling_financial_account_code if available and default if not
-            $financialAccountToCredit = (optional($itemModel)->selling_financial_account_code) ? $itemModel->selling_financial_account_code : $settings->financial_account_to_credit->code;
-
             $data['items'][] = [
                 'tenant_id' => $data['tenant_id'],
                 'created_by' => $data['created_by'],
                 'contact_id' => $item['contact_id'],
                 'item_id' => $item['item_id'],
-                'credit_financial_account_code' => $financialAccountToCredit,
                 'name' => $item['name'],
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
@@ -151,39 +134,10 @@ class GoodsDeliveredValidateService
                 'taxes' => $itemTaxes,
             ];
 
-
-            //CR ledger
-            $data['ledgers'][$financialAccountToCredit]['financial_account_code'] = $financialAccountToCredit;
-            $data['ledgers'][$financialAccountToCredit]['effect'] = 'credit';
-            $data['ledgers'][$financialAccountToCredit]['total'] = @$data['ledgers'][$financialAccountToCredit]['total'] + $taxableAmount;
-            $data['ledgers'][$financialAccountToCredit]['contact_id'] = $data['contact_id'];
         }
 
         $data['taxable_amount'] = $taxableAmount;
         $data['total'] = $txnTotal;
-
-
-        //DR ledger
-        $data['ledgers'][] = [
-            'financial_account_code' => $settings->financial_account_to_debit->code,
-            'effect' => 'debit',
-            'total' => $data['total'],
-            'contact_id' => $data['contact_id']
-        ];
-
-        //print_r($data['ledgers']); exit;
-
-        //Now add the default values to items and ledgers
-
-        foreach ($data['ledgers'] as &$ledger)
-        {
-            $ledger['tenant_id'] = $data['tenant_id'];
-            $ledger['date'] = date('Y-m-d', strtotime($data['date']));
-            $ledger['base_currency'] = $data['base_currency'];
-            $ledger['quote_currency'] = $data['quote_currency'];
-            $ledger['exchange_rate'] = $data['exchange_rate'];
-        }
-        unset($ledger);
 
         //Return the array of txns
         //print_r($data); exit;

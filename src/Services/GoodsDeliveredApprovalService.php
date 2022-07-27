@@ -22,13 +22,7 @@ trait GoodsDeliveredApprovalService
         }
 
         //inventory checks and inventory balance update if needed
-        //$this->inventory(); //currently inventory update for estimates is disabled
-
-        //Update the account balances
-        AccountBalanceUpdateService::doubleEntry($data);
-
-        //Update the contact balances
-        ContactBalanceUpdateService::doubleEntry($data);
+        //$this->inventory(); //currently inventory update for estimates is disabled -< todo update the inventory here
 
         return true;
     }
