@@ -23,7 +23,6 @@ class GoodsDeliveredItemService
         {
             $item['goods_delivered_id'] = $data['id'];
 
-            $itemTaxes = (is_array($item['taxes'])) ? $item['taxes'] : [] ;
             unset($item['taxes']);
 
             $itemModel = GoodsDeliveredItem::create($item);

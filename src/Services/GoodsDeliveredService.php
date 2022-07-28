@@ -134,8 +134,7 @@ class GoodsDeliveredService
             //update the status of the txn
             if ($approval)
             {
-                $Txn->status = $data['status'];
-                $Txn->balances_where_updated = 1;
+                $Txn->status = 'approved';
                 $Txn->save();
             }
 
@@ -242,8 +241,7 @@ class GoodsDeliveredService
             //update the status of the txn
             if ($approval)
             {
-                $Txn->status = $data['status'];
-                $Txn->balances_where_updated = 1;
+                $Txn->status = 'approved';
                 $Txn->save();
             }
 
@@ -410,7 +408,6 @@ class GoodsDeliveredService
             if ($approval)
             {
                 $Txn->status = 'approved';
-                $Txn->balances_where_updated = 1;
                 $Txn->save();
             }
 
