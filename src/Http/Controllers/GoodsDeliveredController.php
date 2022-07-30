@@ -43,7 +43,7 @@ class GoodsDeliveredController extends Controller
 
         $per_page = ($request->per_page) ? $request->per_page : 20;
 
-        $txns = GoodsDelivered::latest()->paginate($per_page);
+        $txns = GoodsDelivered::with('items')->latest()->paginate($per_page);
 
         return [
             'tableData' => $txns
