@@ -130,7 +130,7 @@ class GoodsDeliveredController extends Controller
         }
 
         $txn = GoodsDelivered::findOrFail($id);
-        $txn->load('contact', 'items', 'ledgers');
+        $txn->load('contact', 'items');
         $txn->setAppends([
             'number_string',
             'total_in_words',
