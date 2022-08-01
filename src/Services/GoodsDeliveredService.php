@@ -118,10 +118,8 @@ class GoodsDeliveredService
             GoodsDeliveredItemService::store($data);
 
             //check status and update financial account and contact balances accordingly
-            $approval = GoodsDeliveredApprovalService::run($data);
-
             //update the status of the txn
-            if ($approval)
+            if (GoodsDeliveredInventoryService::update($data))
             {
                 $Txn->status = 'approved';
                 $Txn->save();
@@ -173,23 +171,20 @@ class GoodsDeliveredService
 
         try
         {
-            $Txn = GoodsDelivered::with('items', 'ledgers')->findOrFail($data['id']);
+            $Txn = GoodsDelivered::with('items')->findOrFail($data['id']);
 
             if ($Txn->status == 'approved')
             {
-                self::$errors[] = 'Approved Transaction cannot be not be edited';
-                return false;
+                // self::$errors[] = 'Approved Transaction cannot be not be edited';
+                // return false;
             }
+
+            //reverse the account balances
+            GoodsDeliveredInventoryService::reverse($Txn->toArray());
 
             //Delete affected relations
             $Txn->items()->delete();
             $Txn->comments()->delete();
-
-            //reverse the account balances
-            AccountBalanceUpdateService::doubleEntry($Txn->toArray(), true);
-
-            //reverse the contact balances
-            ContactBalanceUpdateService::doubleEntry($Txn->toArray(), true);
 
             $Txn->tenant_id = $data['tenant_id'];
             $Txn->created_by = Auth::id();
@@ -213,11 +208,8 @@ class GoodsDeliveredService
             //Save the items >> $data['items']
             GoodsDeliveredItemService::store($data);
 
-            //check status and update financial account and contact balances accordingly
-            $approval = GoodsDeliveredApprovalService::run($data);
-
             //update the status of the txn
-            if ($approval)
+            if (GoodsDeliveredInventoryService::update($data))
             {
                 $Txn->status = 'approved';
                 $Txn->save();
