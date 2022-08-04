@@ -107,7 +107,13 @@ class GoodsDeliveredService
             $Txn->reference = $data['reference'];
             $Txn->branch_id = $data['branch_id'];
             $Txn->store_id = $data['store_id'];
+            $Txn->itemable_key = $data['itemable_key'];
+            $Txn->itemable_type = $data['itemable_type'];
 
+            $Txn->save();
+
+            //save the itemabl_id
+            $Txn->itemable_id = $Txn->id;
             $Txn->save();
 
             $data['id'] = $Txn->id;
@@ -115,7 +121,10 @@ class GoodsDeliveredService
             //print_r($data['items']); exit;
 
             //Save the items >> $data['items']
-            GoodsDeliveredItemService::store($data);
+            if ($data['itemable_key'] == 'goods_delivered_id')
+            {
+                GoodsDeliveredItemService::store($data);
+            }
 
             //check status and update financial account and contact balances accordingly
             //update the status of the txn
@@ -370,7 +379,7 @@ class GoodsDeliveredService
         try
         {
             $data['status'] = 'approved';
-            $approval = GoodsDeliveredApprovalService::run($data);
+            $approval = GoodsDeliveredInventoryService::update($data);
 
             //update the status of the txn
             if ($approval)

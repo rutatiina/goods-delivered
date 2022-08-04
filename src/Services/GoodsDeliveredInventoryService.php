@@ -76,6 +76,8 @@ trait GoodsDeliveredInventoryService
         //Update the inventory summary
         foreach ($data['items'] as &$item)
         {
+            if ($item['inventory_tracking'] == 0) continue;
+
             $inventory = self::record($data, $item);
 
             $inventory->increment('units_delivered', $item['units']);
@@ -98,6 +100,8 @@ trait GoodsDeliveredInventoryService
         //Update the inventory summary
         foreach ($data['items'] as &$item)
         {
+            if ($item['inventory_tracking'] == 0) continue;
+            
             $inventory = self::record($data, $item);
 
             $inventory->decrement('units_delivered', $item['units']);

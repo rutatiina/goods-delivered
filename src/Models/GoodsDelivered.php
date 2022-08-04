@@ -95,6 +95,11 @@ class GoodsDelivered extends Model
         $attributes['contact'] = [];
         $attributes['recurring'] = [];
 
+        //remove these parameter because they are set by the system
+        unset($attributes['itemable_id']);
+        unset($attributes['itemable_key']);
+        unset($attributes['itemable_type']);
+
         return $attributes;
     }
 
@@ -127,7 +132,7 @@ class GoodsDelivered extends Model
     public function getItemsAttribute()
     {
         //return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem', 'goods_delivered_id')->orderBy('id', 'asc');$this->attributes['guard_name']
-        return $this->attributes['items_model']::where('goods_delivered_id', $this->attributes['id'])
+        return $this->attributes['itemable_type']::where($this->attributes['itemable_key'], $this->attributes['itemable_id'])
             ->orderBy('id', 'asc')
             ->get();
     }
