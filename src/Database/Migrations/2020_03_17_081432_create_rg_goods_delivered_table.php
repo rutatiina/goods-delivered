@@ -47,7 +47,9 @@ class CreateRgGoodsDeliveredTable extends Migration
             $table->string('status', 20)->nullable();
             $table->unsignedTinyInteger('sent')->nullable();
             $table->unsignedBigInteger('salesperson_id')->nullable();
+            $table->morphs('itemable');
             $table->string('contact_notes', 250)->nullable();
+            $table->string('items_model', 250)->nullable()->default('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem');
         });
     }
 

@@ -36,6 +36,7 @@ class GoodsDelivered extends Model
     protected $appends = [
         'number_string',
         'total_in_words',
+        'items'
     ];
 
     /**
@@ -123,9 +124,12 @@ class GoodsDelivered extends Model
         return $this->hasOne('Rutatiina\FinancialAccounting\Models\Account', 'id', 'credit');
     }
 
-    public function items()
+    public function getItemsAttribute()
     {
-        return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem', 'goods_delivered_id')->orderBy('id', 'asc');
+        //return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem', 'goods_delivered_id')->orderBy('id', 'asc');$this->attributes['guard_name']
+        return $this->attributes['items_model']::where('goods_delivered_id', $this->attributes['id'])
+            ->orderBy('id', 'asc')
+            ->get();
     }
 
     public function ledgers()

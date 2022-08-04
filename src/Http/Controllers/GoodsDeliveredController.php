@@ -43,7 +43,7 @@ class GoodsDeliveredController extends Controller
 
         $per_page = ($request->per_page) ? $request->per_page : 20;
 
-        $txns = GoodsDelivered::with('items')->latest()->paginate($per_page);
+        $txns = GoodsDelivered::latest()->paginate($per_page);
 
         return [
             'tableData' => $txns
@@ -130,11 +130,7 @@ class GoodsDeliveredController extends Controller
         }
 
         $txn = GoodsDelivered::findOrFail($id);
-        $txn->load('contact', 'items');
-        $txn->setAppends([
-            'number_string',
-            'total_in_words',
-        ]);
+        $txn->load('contact');
 
         return $txn->toArray();
     }
