@@ -113,7 +113,7 @@ class GoodsDeliveredService
             $Txn->save();
 
             //save the itemabl_id
-            $Txn->itemable_id = $Txn->id;
+            $Txn->itemable_id = $data['itemable_id'] ?? $Txn->id;
             $Txn->save();
 
             $data['id'] = $Txn->id;

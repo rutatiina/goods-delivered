@@ -82,6 +82,7 @@ class GoodsDeliveredValidateService
         $data['terms_and_conditions'] = $requestInstance->input('terms_and_conditions', null);
         $data['contact_notes'] = $requestInstance->input('contact_notes', null);
         $data['status'] = strtolower($requestInstance->input('status', null));
+        $data['itemable_id'] = $requestInstance->input('itemable_id', null);
         $data['itemable_key'] = $requestInstance->input('itemable_key', 'goods_delivered_id');
         $data['itemable_type'] = $requestInstance->input('itemable_type', 'Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem');
         $data['balances_where_updated'] = 0;
