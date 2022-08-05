@@ -150,13 +150,31 @@ class GoodsDeliveredService
             if (App::environment('local'))
             {
                 self::$errors[] = 'Error: Failed to save Goods Delivered to database.';
-                self::$errors[] = 'File: ' . $e->getFile();
-                self::$errors[] = 'Line: ' . $e->getLine();
-                self::$errors[] = 'Message: ' . $e->getMessage();
+            
+                if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1690)
+                {
+                    self::$errors[] = 'Oops: Item inventory / stock is not enough';
+                }
+                else
+                {
+                    self::$errors[] = 'File: ' . $e->getFile();
+                    self::$errors[] = 'Line: ' . $e->getLine();
+                    self::$errors[] = 'Message: ' . $e->getMessage();
+                    self::$errors[] = 'Mysql error number: ' . @$e->errorInfo[1];
+                }
             }
             else
             {
-                self::$errors[] = 'Fatal Internal Error: Failed to save Goods Delivered to database. Please contact Admin';
+                //BIGINT UNSIGNED value is out of range
+                if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1690)
+                {
+                    self::$errors[] = 'Oops: Item inventory / stock is not enough';
+                }
+                else
+                {
+                    self::$errors[] = 'Fatal Internal Error: Failed to save Goods Delivered to database. Please contact Admin';
+                }
+                
             }
 
             return false;

@@ -36,7 +36,8 @@ class GoodsDelivered extends Model
     protected $appends = [
         'number_string',
         'total_in_words',
-        'items'
+        'items',
+        'link'
     ];
 
     /**
@@ -155,6 +156,13 @@ class GoodsDelivered extends Model
     public function recurring()
     {
         return $this->hasOne('Rutatiina\GoodsDelivered\Models\GoodsDeliveredRecurring', 'goods_delivered_id', 'id');
+    }
+
+    public function getLinkAttribute()
+    {
+        if ($this->attributes['itemable_key'] == 'pos_order_id') return '/pos/orders/'.$this->attributes['itemable_id'];
+        
+        return '/goods-delivered/'.$this->attributes['id'];
     }
 
 }
