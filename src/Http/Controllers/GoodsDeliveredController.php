@@ -28,10 +28,10 @@ class GoodsDeliveredController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:goods-delivered.view');
-		$this->middleware('permission:goods-delivered.create', ['only' => ['create','store']]);
-		$this->middleware('permission:goods-delivered.update', ['only' => ['edit','update']]);
-		$this->middleware('permission:goods-delivered.delete', ['only' => ['destroy']]);
+        // $this->middleware('permission:goods-delivered.view');
+		// $this->middleware('permission:goods-delivered.create', ['only' => ['create','store']]);
+		// $this->middleware('permission:goods-delivered.update', ['only' => ['edit','update']]);
+		// $this->middleware('permission:goods-delivered.delete', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)
