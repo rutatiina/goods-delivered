@@ -285,4 +285,31 @@ class GoodsDeliveredController extends Controller
 
         return $export;
     }
+
+    public function routes()
+    {
+        return [
+            'delete' => route('goods-delivered.delete'),
+            'approve' => route('goods-delivered.approve'),
+            'cancel' => route('goods-delivered.cancel'),
+        ];
+    }
+
+    public function delete(Request $request)
+    {
+        if (GoodsDeliveredService::destroyMany($request->ids))
+        {
+            return [
+                'status' => true,
+                'messages' => [count($request->ids) . ' Goods delivered note(s) deleted.'],
+            ];
+        }
+        else
+        {
+            return [
+                'status' => false,
+                'messages' => GoodsDeliveredService::$errors
+            ];
+        }
+    }
 }

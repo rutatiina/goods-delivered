@@ -52,13 +52,10 @@ class GoodsDelivered extends Model
         static::addGlobalScope(new TenantIdScope);
 
         self::deleting(function($txn) { // before delete() method call this
-             $txn->items()->each(function($row) {
+            $txn->direct_items()->each(function($row) {
                 $row->delete();
              });
              $txn->comments()->each(function($row) {
-                $row->delete();
-             });
-             $txn->ledgers()->each(function($row) {
                 $row->delete();
              });
         });
@@ -119,15 +116,10 @@ class GoodsDelivered extends Model
         $f = new \NumberFormatter( locale_get_default(), \NumberFormatter::SPELLOUT );
         return ucfirst($f->format($this->total));
     }
-
-    public function debit_account()
+    
+    public function direct_items()
     {
-        return $this->hasOne('Rutatiina\FinancialAccounting\Models\Account', 'id', 'debit');
-    }
-
-    public function credit_account()
-    {
-        return $this->hasOne('Rutatiina\FinancialAccounting\Models\Account', 'id', 'credit');
+        return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem', 'goods_delivered_id')->orderBy('id', 'asc');
     }
 
     public function getItemsAttribute()
@@ -138,11 +130,6 @@ class GoodsDelivered extends Model
             ->get();
     }
 
-    public function ledgers()
-    {
-        return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredLedger', 'goods_delivered_id')->orderBy('id', 'asc');
-    }
-
     public function comments()
     {
         return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredComment', 'goods_delivered_id')->latest();
@@ -151,11 +138,6 @@ class GoodsDelivered extends Model
     public function contact()
     {
         return $this->hasOne('Rutatiina\Contact\Models\Contact', 'id', 'contact_id');
-    }
-
-    public function recurring()
-    {
-        return $this->hasOne('Rutatiina\GoodsDelivered\Models\GoodsDeliveredRecurring', 'goods_delivered_id', 'id');
     }
 
     public function getLinkAttribute()

@@ -147,33 +147,21 @@ class GoodsDeliveredService
             Log::critical($e);
 
             //print_r($e); exit;
-            if (App::environment('local'))
+            if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1690)
+            {
+                self::$errors[] = 'Oops: Item inventory / stock is not enough';
+            }
+            elseif (App::environment('local'))
             {
                 self::$errors[] = 'Error: Failed to save Goods Delivered to database.';
-            
-                if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1690)
-                {
-                    self::$errors[] = 'Oops: Item inventory / stock is not enough';
-                }
-                else
-                {
-                    self::$errors[] = 'File: ' . $e->getFile();
-                    self::$errors[] = 'Line: ' . $e->getLine();
-                    self::$errors[] = 'Message: ' . $e->getMessage();
-                    self::$errors[] = 'Mysql error number: ' . @$e->errorInfo[1];
-                }
+                self::$errors[] = 'File: ' . $e->getFile();
+                self::$errors[] = 'Line: ' . $e->getLine();
+                self::$errors[] = 'Message: ' . $e->getMessage();            
             }
             else
             {
                 //BIGINT UNSIGNED value is out of range
-                if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1690)
-                {
-                    self::$errors[] = 'Oops: Item inventory / stock is not enough';
-                }
-                else
-                {
-                    self::$errors[] = 'Fatal Internal Error: Failed to save Goods Delivered to database. Please contact Admin';
-                }
+                self::$errors[] = 'Fatal Internal Error: Failed to save Goods Delivered to database. Please contact Admin';
                 
             }
 
@@ -279,16 +267,16 @@ class GoodsDeliveredService
 
         try
         {
-            $Txn = GoodsDelivered::with('items', 'ledgers')->findOrFail($id);
+            $Txn = GoodsDelivered::findOrFail($id);
 
-            if ($Txn->status == 'approved')
-            {
-                self::$errors[] = 'Approved Transaction cannot be not be deleted';
-                return false;
-            }
+            // if ($Txn->status == 'approved')
+            // {
+            //     self::$errors[] = 'Approved Transaction cannot be not be deleted';
+            //     return false;
+            // }
 
             //Delete affected relations
-            $Txn->items()->delete();
+            $Txn->direct_items()->delete();
             $Txn->comments()->delete();
 
             //reverse the account balances
@@ -326,6 +314,15 @@ class GoodsDeliveredService
 
             return false;
         }
+    }
+
+    public static function destroyMany($ids)
+    {
+        foreach($ids as $id)
+        {
+            if(!self::destroy($id)) return false;
+        }
+        return true;
     }
 
     public static function copy($id)
