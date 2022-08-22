@@ -28,10 +28,10 @@ class GoodsDeliveredController extends Controller
 
     public function __construct()
     {
-        // $this->middleware('permission:goods-delivered.view');
-		// $this->middleware('permission:goods-delivered.create', ['only' => ['create','store']]);
-		// $this->middleware('permission:goods-delivered.update', ['only' => ['edit','update']]);
-		// $this->middleware('permission:goods-delivered.delete', ['only' => ['destroy']]);
+        $this->middleware('permission:goods-delivered.view');
+		$this->middleware('permission:goods-delivered.create', ['only' => ['create','store']]);
+		$this->middleware('permission:goods-delivered.update', ['only' => ['edit','update']]);
+		$this->middleware('permission:goods-delivered.delete', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)
@@ -237,7 +237,7 @@ class GoodsDeliveredController extends Controller
 
     public function datatables()
 	{
-        $txns = Transaction::setRoute('show', route('accounting.inventory.goods-delivered.show', '_id_'))
+        $txns = GoodsDelivered::setRoute('show', route('accounting.inventory.goods-delivered.show', '_id_'))
 			->setRoute('edit', route('accounting.inventory.goods-delivered.edit', '_id_'))
 			->paginate(false)
 			->findByEntree($this->txnEntreeSlug);
@@ -261,7 +261,7 @@ class GoodsDeliveredController extends Controller
         ]);
 
         foreach (array_reverse($request->ids) as $id) {
-            $txn = Transaction::transaction($id);
+            $txn = GoodsDelivered::transaction($id);
 
             $txns->push([
                 $txn->date,
