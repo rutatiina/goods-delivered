@@ -38,9 +38,9 @@ class CreateRgGoodsDeliveredTable extends Migration
             $table->unsignedBigInteger('internal_ref_id');
             $table->date('date');
             $table->time('time');
-            $table->unsignedBigInteger('contact_id');
-            $table->string('contact_name', 50);
-            $table->string('contact_address', 50);
+            $table->unsignedBigInteger('contact_id')->nullable();
+            $table->string('contact_name', 50)->nullable();
+            $table->string('contact_address', 50)->nullable();
             $table->string('reference', 100)->nullable();
             $table->unsignedBigInteger('branch_id')->nullable();
             $table->unsignedBigInteger('store_id')->nullable();
