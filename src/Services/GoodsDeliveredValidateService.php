@@ -22,25 +22,18 @@ class GoodsDeliveredValidateService
         //validate the data
         $customMessages = [
             //'total.in' => "Item total is invalid:\nItem total = item rate x item quantity",
-
-            // 'items.*.taxes.*.code.required' => "Tax code is required",
-            // 'items.*.taxes.*.total.required' => "Tax total is required",
-            //'items.*.taxes.*.exclusive.required' => "Tax exclusive amount is required",
         ];
 
         $rules = [
-            //'contact_id' => 'required|numeric',
+            'contact_id' => 'numeric|nullable',
             'date' => 'required|date',
             'salesperson_contact_id' => 'numeric|nullable',
             'memo' => 'string|nullable',
 
             'items' => 'required|array',
             'items.*.name' => 'required_without:item_id',
-            'items.*.rate' => 'required|numeric',
             'items.*.quantity' => 'required|numeric|gt:0',
-            //'items.*.total' => 'required|numeric|in:' . $itemTotal, //todo custom validator to check this
             'items.*.units' => 'numeric|nullable',
-            'items.*.taxes' => 'array|nullable',
 
         ];
 

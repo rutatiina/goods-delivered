@@ -45,16 +45,14 @@ class GoodsDeliveredService
     {
 
         $txn = GoodsDelivered::findOrFail($id);
-        $txn->load('contact', 'items');
+        $txn->load('contact');
 
         $attributes = $txn->toArray();
 
         //print_r($attributes); exit;
 
         $attributes['_method'] = 'PATCH';
-
-        $attributes['contact']['currency'] = $attributes['contact']['currency_and_exchange_rate'];
-        $attributes['contact']['currencies'] = $attributes['contact']['currencies_and_exchange_rates'];
+        $attributes['contact'] = ($attributes['contact']) ? $attributes['contact'] : json_decode('{}');
 
         $attributes['taxes'] = json_decode('{}');
 
@@ -186,13 +184,9 @@ class GoodsDeliveredService
 
         try
         {
-            $Txn = GoodsDelivered::with('items')->findOrFail($data['id']);
+            $originalTxn = GoodsDelivered::findOrFail($data['id']);
 
-            if ($Txn->status == 'approved')
-            {
-                // self::$errors[] = 'Approved Transaction cannot be not be edited';
-                // return false;
-            }
+            $Txn = $originalTxn->duplicate();
 
             //reverse the account balances
             GoodsDeliveredInventoryService::reverse($Txn->toArray());
@@ -201,6 +195,7 @@ class GoodsDeliveredService
             $Txn->items()->delete();
             $Txn->comments()->delete();
 
+            $Txn->parent_id = $originalTxn->id;
             $Txn->tenant_id = $data['tenant_id'];
             $Txn->created_by = Auth::id();
             $Txn->document_name = $data['document_name'];
@@ -229,6 +224,8 @@ class GoodsDeliveredService
                 $Txn->status = 'approved';
                 $Txn->save();
             }
+
+            $originalTxn->update(['status' => 'edited']);
 
             DB::connection('tenant')->commit();
 
@@ -269,22 +266,11 @@ class GoodsDeliveredService
         {
             $Txn = GoodsDelivered::findOrFail($id);
 
-            // if ($Txn->status == 'approved')
-            // {
-            //     self::$errors[] = 'Approved Transaction cannot be not be deleted';
-            //     return false;
-            // }
+            GoodsDeliveredInventoryService::reverse($Txn->toArray());
 
             //Delete affected relations
             $Txn->direct_items()->delete();
             $Txn->comments()->delete();
-
-            //reverse the account balances
-            AccountBalanceUpdateService::doubleEntry($Txn, true);
-
-            //reverse the contact balances
-            ContactBalanceUpdateService::doubleEntry($Txn, true);
-
             $Txn->delete();
 
             DB::connection('tenant')->commit();
