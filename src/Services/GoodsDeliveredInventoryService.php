@@ -66,13 +66,7 @@ trait GoodsDeliveredInventoryService
     }
 
     public static function update($data)
-    {
-        if ($data['status'] != 'approved')
-        {
-            //can only update balances if status is approved
-            return false;
-        }
-        
+    {   
         //Update the inventory summary
         foreach ($data['items'] as &$item)
         {
@@ -89,14 +83,7 @@ trait GoodsDeliveredInventoryService
     }
 
     public static function reverse($data)
-    {
-        //approve means the inventories for this transaction were updated
-        //this reversing is allowed ONLY if status approved
-        if ($data['status'] != 'approved')
-        {
-            return false;
-        }
-        
+    {   
         //Update the inventory summary
         foreach ($data['items'] as &$item)
         {
