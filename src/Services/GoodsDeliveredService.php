@@ -2,15 +2,16 @@
 
 namespace Rutatiina\GoodsDelivered\Services;
 
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
+use Rutatiina\Tax\Models\Tax;
+use Rutatiina\Item\Models\Item;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Rutatiina\GoodsDelivered\Models\GoodsDelivered;
+use Rutatiina\GoodsDelivered\Models\GoodsDeliveredSetting;
 use Rutatiina\FinancialAccounting\Services\AccountBalanceUpdateService;
 use Rutatiina\FinancialAccounting\Services\ContactBalanceUpdateService;
-use Rutatiina\GoodsDelivered\Models\GoodsDeliveredSetting;
-use Rutatiina\Tax\Models\Tax;
 
 class GoodsDeliveredService
 {
@@ -62,7 +63,7 @@ class GoodsDeliveredService
                 'id' => $item['item_id'],
                 'name' => $item['name'],
                 'description' => $item['description'],
-                'rate' => $item['rate'],
+                'rate' => 0,
                 'tax_method' => 'inclusive',
                 'account_type' => null,
             ];
@@ -72,7 +73,7 @@ class GoodsDeliveredService
             $attributes['items'][$key]['displayTotal'] = 0; #required
 
             $attributes['items'][$key]['quantity'] = floatval($item['quantity']);
-            $attributes['items'][$key]['displayTotal'] = $item['total']; #required
+            $attributes['items'][$key]['displayTotal'] = 0; #required
         };
 
         return $attributes;
@@ -107,6 +108,7 @@ class GoodsDeliveredService
             $Txn->store_id = $data['store_id'];
             $Txn->itemable_key = $data['itemable_key'];
             $Txn->itemable_type = $data['itemable_type'];
+            $Txn->status = $data['status'];
 
             $Txn->save();
 
@@ -126,11 +128,8 @@ class GoodsDeliveredService
 
             //check status and update financial account and contact balances accordingly
             //update the status of the txn
-            if (GoodsDeliveredInventoryService::update($data))
-            {
-                $Txn->status = 'approved';
-                $Txn->save();
-            }
+            $Txn->status = (GoodsDeliveredInventoryService::update($data)) ? 'approved' : 'draft';
+            $Txn->save();
 
             DB::connection('tenant')->commit();
 
@@ -266,7 +265,16 @@ class GoodsDeliveredService
         {
             $Txn = GoodsDelivered::findOrFail($id);
 
-            GoodsDeliveredInventoryService::reverse($Txn->toArray());
+            $_t = $Txn->toArray();
+            foreach($_t['items'] as &$item) 
+            {
+                $_itemModel = Item::find($item['item_id']);
+                $item['inventory_tracking'] = ($_itemModel) ? $_itemModel->inventory_tracking : 0;
+                $item['units'] = (is_numeric($item['units'])) ? $item['units'] : 0;
+            };
+            unset($item);
+
+            GoodsDeliveredInventoryService::reverse($_t);
 
             //Delete affected relations
             $Txn->direct_items()->delete();
@@ -364,7 +372,7 @@ class GoodsDeliveredService
 
     public static function approve($id)
     {
-        $Txn = GoodsDelivered::with(['ledgers'])->findOrFail($id);
+        $Txn = GoodsDelivered::findOrFail($id);
 
         if (!in_array($Txn->status, config('financial-accounting.approvable_status')))
         {
@@ -380,21 +388,15 @@ class GoodsDeliveredService
         try
         {
             $data['status'] = 'approved';
-            $approval = GoodsDeliveredInventoryService::update($data);
-
-            //update the status of the txn
-            if ($approval)
-            {
-                $Txn->status = 'approved';
-                $Txn->save();
-            }
+            $Txn->status = (GoodsDeliveredInventoryService::update($data)) ? 'approved' : 'draft';
+            $Txn->save();
 
             DB::connection('tenant')->commit();
 
             return true;
 
         }
-        catch (\Exception $e)
+        catch (\Throwable $e)
         {
             DB::connection('tenant')->rollBack();
             //print_r($e); exit;

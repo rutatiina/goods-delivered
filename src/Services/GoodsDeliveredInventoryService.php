@@ -2,6 +2,7 @@
 
 namespace Rutatiina\GoodsDelivered\Services;
 
+use Rutatiina\Item\Models\Item;
 use Rutatiina\Inventory\Models\Inventory;
 use Rutatiina\FinancialAccounting\Services\AccountBalanceUpdateService;
 use Rutatiina\FinancialAccounting\Services\ContactBalanceUpdateService;
@@ -66,11 +67,27 @@ trait GoodsDeliveredInventoryService
     }
 
     public static function update($data)
-    {   
+    {
+        if ($data['status'] != 'approved') return false; //can only update balances if status is approved
+        
         //Update the inventory summary
         foreach ($data['items'] as &$item)
         {
+            if (!isset($item['inventory_tracking']))
+            {
+                if(is_numeric($item['item_id']))
+                {
+                    $item['inventory_tracking'] = optional(Item::find($item['item_id']))->inventory_tracking;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
             if ($item['inventory_tracking'] == 0) continue;
+
+            $item['units'] = (is_numeric($item['units'])) ? $item['units'] : $item['quantity'];
 
             $inventory = self::record($data, $item);
 
@@ -83,11 +100,27 @@ trait GoodsDeliveredInventoryService
     }
 
     public static function reverse($data)
-    {   
+    {
+        if ($data['status'] != 'approved') return false; //can only update balances if status is approved
+        
         //Update the inventory summary
         foreach ($data['items'] as &$item)
         {
+            if (!isset($item['inventory_tracking']))
+            {
+                if(is_numeric($item['item_id']))
+                {
+                    $item['inventory_tracking'] = optional(Item::find($item['item_id']))->inventory_tracking;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
             if ($item['inventory_tracking'] == 0) continue;
+
+            $item['units'] = (is_numeric($item['units'])) ? $item['units'] : 0;
             
             $inventory = self::record($data, $item);
 
