@@ -48,7 +48,6 @@ class GoodsDelivered extends Model
     protected $appends = [
         'number_string',
         'total_in_words',
-        'items',
         'link'
     ];
 
@@ -65,7 +64,7 @@ class GoodsDelivered extends Model
         static::addGlobalScope(new StatusEditedScope);
 
         self::deleting(function($txn) { // before delete() method call this
-            $txn->direct_items()->each(function($row) {
+            $txn->items()->each(function($row) {
                 $row->delete();
              });
              $txn->comments()->each(function($row) {
@@ -130,17 +129,9 @@ class GoodsDelivered extends Model
         return ucfirst($f->format($this->total));
     }
     
-    public function direct_items()
+    public function items()
     {
         return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem', 'goods_delivered_id')->orderBy('id', 'asc');
-    }
-
-    public function getItemsAttribute()
-    {
-        //return $this->hasMany('Rutatiina\GoodsDelivered\Models\GoodsDeliveredItem', 'goods_delivered_id')->orderBy('id', 'asc');$this->attributes['guard_name']
-        return $this->attributes['itemable_type']::where($this->attributes['itemable_key'], $this->attributes['itemable_id'])
-            ->orderBy('id', 'asc')
-            ->get();
     }
 
     public function comments()

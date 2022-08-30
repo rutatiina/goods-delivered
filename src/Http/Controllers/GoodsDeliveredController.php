@@ -43,7 +43,7 @@ class GoodsDeliveredController extends Controller
 
         $per_page = ($request->per_page) ? $request->per_page : 20;
 
-        $txns = GoodsDelivered::orderBy('id','desc')->paginate($per_page);
+        $txns = GoodsDelivered::with('items')->orderBy('id','desc')->paginate($per_page);
 
         return [
             'tableData' => $txns
@@ -130,6 +130,7 @@ class GoodsDeliveredController extends Controller
         }
 
         $txn = GoodsDelivered::findOrFail($id);
+        $txn->load('items');
         $txn->load('contact');
 
         return $txn->toArray();

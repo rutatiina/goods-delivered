@@ -183,7 +183,7 @@ class GoodsDeliveredService
 
         try
         {
-            $originalTxn = GoodsDelivered::findOrFail($data['id']);
+            $originalTxn = GoodsDelivered::with('items')->findOrFail($data['id']);
 
             $Txn = $originalTxn->duplicate();
 
@@ -206,7 +206,6 @@ class GoodsDeliveredService
             $Txn->reference = $data['reference'];
             $Txn->branch_id = $data['branch_id'];
             $Txn->store_id = $data['store_id'];
-            $Txn->contact_notes = $data['contact_notes'];
 
             $Txn->save();
 
@@ -263,21 +262,12 @@ class GoodsDeliveredService
 
         try
         {
-            $Txn = GoodsDelivered::findOrFail($id);
+            $Txn = GoodsDelivered::with('items')->findOrFail($id);
 
-            $_t = $Txn->toArray();
-            foreach($_t['items'] as &$item) 
-            {
-                $_itemModel = Item::find($item['item_id']);
-                $item['inventory_tracking'] = ($_itemModel) ? $_itemModel->inventory_tracking : 0;
-                $item['units'] = (is_numeric($item['units'])) ? $item['units'] : 0;
-            };
-            unset($item);
-
-            GoodsDeliveredInventoryService::reverse($_t);
+            GoodsDeliveredInventoryService::reverse($Txn->toArray());
 
             //Delete affected relations
-            $Txn->direct_items()->delete();
+            $Txn->items()->delete();
             $Txn->comments()->delete();
             $Txn->delete();
 
