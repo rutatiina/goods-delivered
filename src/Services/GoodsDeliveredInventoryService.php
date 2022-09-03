@@ -11,6 +11,8 @@ trait GoodsDeliveredInventoryService
 {
     private static function record($transaction, $item)
     {
+        $item['batch'] = (isset($item['batch'])) ? $item['batch'] : null;
+
         $inventory = Inventory::whereDate('date', '<=', $transaction['date'])
             ->where([
                 'tenant_id' => $item['tenant_id'], 
