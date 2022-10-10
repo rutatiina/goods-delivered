@@ -72,6 +72,15 @@ class GoodsDelivered extends Model
              });
         });
 
+        self::restored(function($txn) {
+            $txn->items()->each(function($row) {
+                $row->restore();
+             });
+             $txn->comments()->each(function($row) {
+                $row->restore();
+             });
+        });
+
     }
 
     public function rgGetAttributes()
