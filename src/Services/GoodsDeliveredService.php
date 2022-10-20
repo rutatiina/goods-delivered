@@ -30,7 +30,7 @@ class GoodsDeliveredService
             'document_type' => 'inventory',
             //since this is not a financial accounting entry, there is no need for the double entry details
             //'debit_financial_account_code' => 720100, //Cost of Sales
-            //'credit_financial_account_code' => 130500, //Other Inventory [value was 6 before changing to codes]
+            //'credit_financial_account_code' => 130500, //Inventory [value was 6 before changing to codes]
         ]);
     }
 
