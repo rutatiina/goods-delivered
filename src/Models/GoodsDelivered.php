@@ -3,6 +3,7 @@
 namespace Rutatiina\GoodsDelivered\Models;
 
 use Bkwld\Cloner\Cloneable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Rutatiina\Tenant\Scopes\TenantIdScope;
@@ -81,13 +82,37 @@ class GoodsDelivered extends Model
                 $row->restore();
              });
         });
-
+    }
+    
+    /**
+     * Scope a query to only include approved records users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+    
+    /**
+     * Scope a query to only include not canceled records
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNotCancelled($query)
+    {
+        return $query->where(function($q) {
+            $q->where('canceled', 0);
+            $q->orWhereNull('canceled');
+        });
     }
 
     public function rgGetAttributes()
     {
         $attributes = [];
-        $describeTable =  \DB::connection('tenant')->select('describe ' . $this->getTable());
+        $describeTable =  DB::connection('tenant')->select('describe ' . $this->getTable());
 
         foreach ($describeTable  as $row) {
 
