@@ -24,14 +24,17 @@ class GoodsDeliveredService
 
     public static function settings()
     {
-        return GoodsDeliveredSetting::firstOrCreate([
-            'tenant_id' => session('tenant_id'),
-            'document_name' => 'Goods Delivered Note',
-            'document_type' => 'inventory',
-            //since this is not a financial accounting entry, there is no need for the double entry details
-            //'debit_financial_account_code' => 720100, //Cost of Sales
-            //'credit_financial_account_code' => 130500, //Inventory [value was 6 before changing to codes]
-        ]);
+        return GoodsDeliveredSetting::firstOrCreate(
+            ['tenant_id' => session('tenant_id')],
+            [
+                'document_name' => 'Goods Delivered Note',
+                'document_type' => 'inventory',
+                'minimum_number_length' => 5,
+                //since this is not a financial accounting entry, there is no need for the double entry details
+                //'debit_financial_account_code' => 720100, //Cost of Sales
+                //'credit_financial_account_code' => 130500, //Inventory [value was 6 before changing to codes]
+            ]
+        );
     }
 
     public static function nextNumber()
